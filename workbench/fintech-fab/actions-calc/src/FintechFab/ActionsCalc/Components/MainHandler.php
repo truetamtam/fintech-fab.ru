@@ -37,7 +37,7 @@ class MainHandler
 		$countFitRules = count($fitRules);
 		if ($countFitRules == 0) {
 			Log::info('Соответствующих запросу правил не найдено');
-			die;
+			App::abort(500, 'Соответствующих запросу правил не найдено.');
 		}
 		Log::info("Найдено подходящих правил: $countFitRules");
 
@@ -84,8 +84,7 @@ class MainHandler
 		if ($sidTermValidator->fails()) {
 			$aFailMessages = $sidTermValidator->failed();
 			Log::info('Ошибки валидации: ', $aFailMessages);
-			App::abort(500);
-			exit();
+			App::abort(500, 'Ошибки валидации.');
 		}
 	}
 
