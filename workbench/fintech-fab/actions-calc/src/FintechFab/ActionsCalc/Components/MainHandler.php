@@ -17,7 +17,11 @@ class MainHandler
 	/**
 	 * @param $data
 	 *
+<<<<<<< HEAD
 	 * @return boolean
+=======
+	 * @return string JSON $response
+>>>>>>> 54a379e41f52c0963ebb78fdb4353d779dfcd4fc
 	 */
 	public function processRequest($data)
 	{
@@ -40,7 +44,6 @@ class MainHandler
 		if ($countFitRules == 0) {
 			Log::info('Соответствующих запросу правил не найдено');
 			Response::make()->header('Content-Type', 'application/json');
-
 			return json_encode(['countFitRules' => $countFitRules]);
 		}
 		Log::info("Найдено подходящих правил: $countFitRules");
@@ -74,7 +77,7 @@ class MainHandler
 
 		}
 
-		return true;
+		return json_encode(['countFitRules' => $countFitRules]);
 	}
 
 	/**
