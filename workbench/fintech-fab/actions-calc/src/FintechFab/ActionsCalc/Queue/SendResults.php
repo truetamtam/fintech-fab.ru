@@ -38,7 +38,7 @@ class SendResults
 			'signalSid' => $signalSid,
 		));
 
-		Log::info('Результат поставлен в очередь, класс для выполнения FintechFab\\ActionsCalc\\Queue\\QueueHandler');
+		Log::info('Результат поставлен в очередь, класс для выполнения FintechFab\\ActionsCalc\\Queue\\SendResults');
 	}
 
 }
