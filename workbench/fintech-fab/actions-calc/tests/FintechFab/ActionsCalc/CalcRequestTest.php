@@ -14,18 +14,18 @@ class CalcRequestTest extends CalcTestCase
 	{
 		parent::setUp();
 
-		$this->mock = Mockery::mock('FintechFab\ActionsCalc\Components\SendResults');
+		$this->mock = Mockery::mock('FintechFab\ActionsCalc\Queue\SendResults');
 	}
 
 	public function testGetRequest1()
 	{
 
-		App::bind('FintechFab\ActionsCalc\Components\SendResults', function () {
+		App::bind('FintechFab\ActionsCalc\Queue\SendResults', function () {
 			$this->mock
 				->shouldReceive('makeCurl')
 				->withArgs(['http://test', 'go_eat']);
 			$this->mock
-				->shouldReceive('sendQueue')
+				->shouldReceive('requestToQueue')
 				->withArgs(['queueTest', 'go_eat']);
 
 			return $this->mock;
@@ -51,12 +51,12 @@ class CalcRequestTest extends CalcTestCase
 	public function testGetRequest2()
 	{
 
-		App::bind('FintechFab\ActionsCalc\Components\SendResults', function () {
+		App::bind('FintechFab\ActionsCalc\Queue\SendResults', function () {
 			$this->mock
 				->shouldReceive('makeCurl')
 				->withArgs(['http://test', 'wait']);
 			$this->mock
-				->shouldReceive('sendQueue')
+				->shouldReceive('requestToQueue')
 				->withArgs(['queueTest', 'wait']);
 
 			return $this->mock;
@@ -82,12 +82,12 @@ class CalcRequestTest extends CalcTestCase
 	public function testGetRequest3()
 	{
 
-		App::bind('FintechFab\ActionsCalc\Components\SendResults', function () {
+		App::bind('FintechFab\ActionsCalc\Queue\SendResults', function () {
 			$this->mock
 				->shouldReceive('makeCurl')
 				->withArgs(['http://test', 'endure']);
 			$this->mock
-				->shouldReceive('sendQueue')
+				->shouldReceive('requestToQueue')
 				->withArgs(['queueTest', 'endure']);
 
 			return $this->mock;
@@ -132,12 +132,12 @@ class CalcRequestTest extends CalcTestCase
 	public function testGetRequest5()
 	{
 
-		App::bind('FintechFab\ActionsCalc\Components\SendResults', function () {
+		App::bind('FintechFab\ActionsCalc\Queue\SendResults', function () {
 			$this->mock
 				->shouldReceive('makeCurl')
 				->withArgs(['http://test', 'go_eat']);
 			$this->mock
-				->shouldReceive('sendQueue')
+				->shouldReceive('requestToQueue')
 				->withArgs(['queueTest', 'go_eat']);
 
 			return $this->mock;

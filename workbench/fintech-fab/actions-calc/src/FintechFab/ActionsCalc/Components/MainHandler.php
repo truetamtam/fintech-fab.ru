@@ -10,6 +10,7 @@ use FintechFab\ActionsCalc\Models\Signal;
 use Response;
 use Log;
 use Validator;
+use FintechFab\ActionsCalc\Queue\SendResults;
 
 class MainHandler
 {
@@ -17,11 +18,7 @@ class MainHandler
 	/**
 	 * @param $data
 	 *
-<<<<<<< HEAD
-	 * @return boolean
-=======
 	 * @return string JSON $response
->>>>>>> 54a379e41f52c0963ebb78fdb4353d779dfcd4fc
 	 */
 	public function processRequest($data)
 	{
@@ -44,6 +41,7 @@ class MainHandler
 		if ($countFitRules == 0) {
 			Log::info('Соответствующих запросу правил не найдено');
 			Response::make()->header('Content-Type', 'application/json');
+
 			return json_encode(['countFitRules' => $countFitRules]);
 		}
 		Log::info("Найдено подходящих правил: $countFitRules");
@@ -61,18 +59,14 @@ class MainHandler
 			/**
 			 * @var SendResults $sendResults
 			 */
-			$sendResults = App::make('FintechFab\ActionsCalc\Components\SendResults');
+			$sendResults = App::make('FintechFab\ActionsCalc\Queue\SendResults');
 			$url = $event->terminal->url;
-			if ($url != '') {
-				$sendResults->makeCurl($url, $signalSid);
-				$signal->setFlagUrlTrue();
-			}
+			$queue = $event->terminal->queue;
 
 			//Отправляем результат в очередь
-			$queue = $event->terminal->queue;
-			if ($queue != '') {
-				$sendResults->sendQueue($queue, $signalSid);
+			if ($queue != '' && $url != '') {
 				$signal->setFlagQueueTrue();
+				$sendResults->requestToQueue($url, $queue, $signalSid);
 			}
 
 		}
