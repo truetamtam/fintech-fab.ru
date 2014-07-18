@@ -16,6 +16,8 @@ class MainHandler
 
 	/**
 	 * @param $data
+	 *
+	 * @return boolean
 	 */
 	public function processRequest($data)
 	{
@@ -38,6 +40,7 @@ class MainHandler
 		if ($countFitRules == 0) {
 			Log::info('Соответствующих запросу правил не найдено');
 			Response::make()->header('Content-Type', 'application/json');
+
 			return json_encode(['countFitRules' => $countFitRules]);
 		}
 		Log::info("Найдено подходящих правил: $countFitRules");
@@ -52,6 +55,9 @@ class MainHandler
 			Log::info("Запись в таблицу сигналов: id  = $signal->id");
 
 			//Отправляем результат по http
+			/**
+			 * @var SendResults $sendResults
+			 */
 			$sendResults = App::make('FintechFab\ActionsCalc\Components\SendResults');
 			$url = $event->terminal->url;
 			if ($url != '') {
@@ -68,6 +74,7 @@ class MainHandler
 
 		}
 
+		return true;
 	}
 
 	/**
