@@ -2,6 +2,8 @@
 namespace FintechFab\ActionsCalc\Components;
 
 
+use App;
+use Log;
 use Validator;
 
 class Validators
@@ -14,6 +16,7 @@ class Validators
 			'username'        => 'required',
 			'url'             => 'url',
 			'queue'           => '',
+			'key' => '',
 			'password'        => 'required|min:4|alpha_dash',
 			'confirmPassword' => 'required|same:password',
 		);
@@ -27,8 +30,19 @@ class Validators
 			'username'        => 'required',
 			'url'             => 'url',
 			'queue'           => '',
+			'key' => '',
 			'password'        => 'min:4|alpha_dash',
 			'confirmPassword' => 'required_with:password|same:password',
+		);
+
+		return $rules;
+	}
+
+	public static function rulesForRequest()
+	{
+		$rules = array(
+			'term'  => 'required|integer',
+			'event' => 'required|alpha_dash',
 		);
 
 		return $rules;
@@ -61,6 +75,7 @@ class Validators
 				'username'        => $userMessages->first('username'),
 				'url'             => $userMessages->first('url'),
 				'queue'           => $userMessages->first('queue'),
+				'key' => $userMessages->first('key'),
 				'password'        => $userMessages->first('password'),
 				'confirmPassword' => $userMessages->first('confirmPassword'),
 			);
@@ -82,6 +97,7 @@ class Validators
 				'username'        => $userMessages->first('username'),
 				'url'             => $userMessages->first('url'),
 				'queue'           => $userMessages->first('queue'),
+				'key' => $userMessages->first('key'),
 				'password'        => $userMessages->first('password'),
 				'confirmPassword' => $userMessages->first('confirmPassword'),
 			);
@@ -90,6 +106,21 @@ class Validators
 		}
 
 		return null;
+	}
+
+	/**
+	 * @param $input
+	 */
+	public static function ValidateInput($input)
+	{
+		$sidTermValidator = Validator::make($input, Validators::rulesForRequest());
+
+		if ($sidTermValidator->fails()) {
+			$aFailMessages = $sidTermValidator->failed();
+			Log::info('Ошибки валидации: ', $aFailMessages);
+			App::abort(500);
+			exit();
+		}
 	}
 
 }

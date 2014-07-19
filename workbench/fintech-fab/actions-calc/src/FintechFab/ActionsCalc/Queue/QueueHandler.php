@@ -3,34 +3,25 @@
 namespace FintechFab\ActionsCalc\Queue;
 
 
+use FintechFab\ActionsCalc\Components\MainHandler;
+use FintechFab\ActionsCalc\Components\Validators;
 use Illuminate\Queue\Jobs\Job;
+use Log;
 
 class QueueHandler
 {
-	//	public function fire(Job $job, $data) {
-	//
-	//		$ch = curl_init($data['url']);
-	//		curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-	//		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	//		curl_setopt($ch, CURLOPT_POST, true);
-	//		curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-	//
-	//		$response = curl_exec($ch);
-	//		$error = curl_error($ch);
-	//
-	//		if(!$response || $error) {
-	//			Log::info("Curl error: $error, response: $response");
-	//		} else {
-	//			Log::info("Curl success: $error, response: $response");
-	//			$job->delete();
-	//		}
-	//
-	//	}
-
-	public function fire(Job $job, array $data)
+	/**
+	 * @param Job   $job
+	 * @param array $data
+	 */
+	public function fire(Job $job, $data)
 	{
+		Log::info('Получен запрос через очередь с параметрами:', $data);
+		Validators::ValidateInput($data);
+
+		$mainHandler = new MainHandler();
+		$mainHandler->processRequest($data);
 		$job->delete();
-		dd($data);
 	}
 
 } 

@@ -9,8 +9,6 @@ use FintechFab\ActionsCalc\Models\Rule;
 use FintechFab\ActionsCalc\Models\Signal;
 use Response;
 use Log;
-use Validator;
-use FintechFab\ActionsCalc\Queue\SendResults;
 
 class MainHandler
 {
@@ -18,7 +16,7 @@ class MainHandler
 	/**
 	 * @param $data
 	 *
-	 * @return string JSON $response
+	 * @return array
 	 */
 	public function processRequest($data)
 	{
@@ -26,11 +24,10 @@ class MainHandler
 
 		//Записываем событие в базу
 		$event = new Event();
-		$event->newEvent($data['term'], $data['sid'], $eventData);
-		$this->validate($data);
+		$event->newEvent($data['term'], $data['event'], $eventData);
 
 		//Получаем все правила теминала по событию
-		$rules = Rule::getRules($data['term'], $data['sid']);
+		$rules = Rule::getRules($data['term'], $data['event']);
 		$countRules = count($rules);
 		Log::info("Всего найдено правил: $countRules");
 
@@ -42,7 +39,7 @@ class MainHandler
 			Log::info('Соответствующих запросу правил не найдено');
 			Response::make()->header('Content-Type', 'application/json');
 
-			return json_encode(['countFitRules' => $countFitRules]);
+			return ['countFitRules' => $countFitRules];
 		}
 		Log::info("Найдено подходящих правил: $countFitRules");
 
@@ -61,7 +58,10 @@ class MainHandler
 			 */
 			$sendResults = App::make('FintechFab\ActionsCalc\Queue\SendResults');
 			$url = $event->terminal->url;
-			$queue = $event->terminal->queue;
+
+			if ($url != '') {
+				$sendResults->sendHttp($url, $signal->id);
+			}
 
 			//Отправляем результат в очередь
 			if ($queue != '' && $url != '') {
@@ -71,28 +71,7 @@ class MainHandler
 
 		}
 
-		return json_encode(['countFitRules' => $countFitRules]);
+		return ['countFitRules' => $countFitRules];
 	}
 
-	/**
-	 * Валидация term sid
-	 *
-	 * @param $data
-	 */
-	private function validate($data)
-	{
-		// Валидация term sid
-		$sidTermValidator = Validator::make($data, [
-			'term' => 'required|integer',
-			'sid'  => 'required|alpha_dash'
-		]);
-
-		// Без term и sid не имеет смысла гнать скрипт
-		if ($sidTermValidator->fails()) {
-			$aFailMessages = $sidTermValidator->failed();
-			Log::info('Ошибки валидации: ', $aFailMessages);
-			App::abort(500, 'Ошибки валидации.');
-		}
-	}
-
-} 
+}

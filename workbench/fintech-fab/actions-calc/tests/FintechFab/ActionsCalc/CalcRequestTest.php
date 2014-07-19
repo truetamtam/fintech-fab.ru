@@ -9,12 +9,14 @@ class CalcRequestTest extends CalcTestCase
 	 * @var Mockery\MockInterface|SendResults
 	 */
 	private $mock;
+	private $sign;
 
 	public function setUp()
 	{
 		parent::setUp();
 
-		$this->mock = Mockery::mock('FintechFab\ActionsCalc\Queue\SendResults');
+		$this->mock = Mockery::mock('FintechFab\ActionsCalc\Components\SendResults');
+		$this->sign = $sign = md5('terminal=1|event=im_hungry|key');
 	}
 
 	public function testGetRequest1()
@@ -34,9 +36,9 @@ class CalcRequestTest extends CalcTestCase
 
 		$requestData = array(
 			'term'   => 1,
-			'sid'    => 'im_hungry',
+			'event' => 'im_hungry',
 			'data'   => json_encode(array('time' => '13.05')),
-			'signal' => null,
+			'sign'  => $this->sign,
 		);
 
 		$response = $this->call(
@@ -65,9 +67,9 @@ class CalcRequestTest extends CalcTestCase
 
 		$requestData = array(
 			'term'   => 1,
-			'sid'    => 'im_hungry',
+			'event' => 'im_hungry',
 			'data'   => json_encode(array('time' => '12.05')),
-			'signal' => null,
+			'sign'  => $this->sign,
 		);
 
 		$response = $this->call(
@@ -96,9 +98,9 @@ class CalcRequestTest extends CalcTestCase
 
 		$requestData = array(
 			'term'   => 1,
-			'sid'    => 'im_hungry',
+			'event' => 'im_hungry',
 			'data'   => json_encode(array('time' => '14.30')),
-			'signal' => null,
+			'sign'  => $this->sign,
 		);
 
 		$response = $this->call(
@@ -115,9 +117,9 @@ class CalcRequestTest extends CalcTestCase
 
 		$requestData = array(
 			'term'   => 1,
-			'sid'    => 'im_hungry',
+			'event' => 'im_hungry',
 			'data'   => json_encode(array('time' => '13.30', 'have_money' => false)),
-			'signal' => null,
+			'sign'  => $this->sign,
 		);
 
 		$response = $this->call(
@@ -146,9 +148,9 @@ class CalcRequestTest extends CalcTestCase
 
 		$requestData = array(
 			'term'   => 1,
-			'sid'    => 'im_hungry',
+			'event' => 'im_hungry',
 			'data'   => json_encode(array('time' => '13.30', 'have_money' => true)),
-			'signal' => null,
+			'sign'  => $this->sign,
 		);
 
 		$response = $this->call(
