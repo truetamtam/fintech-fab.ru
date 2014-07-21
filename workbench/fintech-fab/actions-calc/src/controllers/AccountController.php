@@ -29,12 +29,14 @@ class AccountController extends BaseController
 		return $this->make('about');
 	}
 
-	public function editRule()
+	public function tableRule()
 	{
 		$terminal = AuthCheck::getTerm();
 
-		return $this->make('edit', array(
-			'terminal' => $terminal,
+		$rules = $terminal->rules()->paginate(10);
+
+		return $this->make('tableRule', array(
+			'rules' => $rules,
 		));
 	}
 
@@ -59,6 +61,13 @@ class AccountController extends BaseController
 
 			return $errors;
 		}
+
+		//Если ключ не указан, формируем случайный
+		$input['key'] = $input['key'] != ''
+			? $input['key']
+			: md5($input['username'] . $input['termId'] . $input['url'] . $input['password']);
+
+
 		$terminal = new Terminal;
 		$terminal->newTerminal($input);
 
@@ -76,7 +85,7 @@ class AccountController extends BaseController
 	public function postChangeData()
 	{
 		$input = Input::only('username', 'url', 'queue', 'key', 'password', 'confirmPassword', 'oldPassword');
-//		$input['key'] = 'sdgsdfhfh';
+
 		//проверяем данные
 		$errors = Validators::getErrorFromChangeData($input);
 		if ($errors) {
@@ -85,7 +94,7 @@ class AccountController extends BaseController
 
 		//Проверяем текущий пароль
 		$termId = Config::get('ff-actions-calc::termId');
-		$terminal = Terminal::find($termId)->first();
+		$terminal = Terminal::find($termId);
 
 		if ($input['oldPassword'] != $terminal->password) {
 			$result['errors'] = array(

@@ -5,9 +5,9 @@ namespace FintechFab\ActionsCalc\Components;
 
 use App;
 use FintechFab\ActionsCalc\Models\Event;
+use FintechFab\ActionsCalc\Models\IncomeEvent;
+use FintechFab\ActionsCalc\Models\ResultSignal;
 use FintechFab\ActionsCalc\Models\Rule;
-use FintechFab\ActionsCalc\Models\Signal;
-use Response;
 use Log;
 
 class MainHandler
@@ -23,11 +23,20 @@ class MainHandler
 		$eventData = (array)json_decode($data['data']);
 
 		//Записываем событие в базу
-		$event = new Event();
-		$event->newEvent($data['term'], $data['event'], $eventData);
+		$incomeEvent = new IncomeEvent();
+		$incomeEvent->newIncomeEvent($data['term'], $data['event'], $eventData);
+
+		//Если не находим событие - отдаём ошибку
+		$event = Event::getEvent($data['term'], $data['event']);
+
+		if ($event == null) {
+			Log::info('Правило ' . $data['event'] . ' не найдено');
+
+			return ['error' => 'Unknown event'];
+		}
 
 		//Получаем все правила теминала по событию
-		$rules = Rule::getRules($data['term'], $data['event']);
+		$rules = Rule::getRules($data['term'], $event->id);
 		$countRules = count($rules);
 		Log::info("Всего найдено правил: $countRules");
 
@@ -46,27 +55,25 @@ class MainHandler
 		//Проходим циклом по каждому правилу и отправляем результат
 		foreach ($fitRules as $fitRule) {
 			Log::info("Соответствующее правило: ", $fitRule->getAttributes());
-			$signalSid = $fitRule['signal_sid'];
+			$signalSid = $fitRule->signal->signal_sid;
 
-			$signal = new Signal;
-			$signal->newSignal($event->id, $signalSid);
-			Log::info("Запись в таблицу сигналов: id  = $signal->id");
+			$resultSignal = new ResultSignal;
+			$resultSignal->newResultSignal($incomeEvent->id, $signalSid);
+			Log::info("Запись в таблицу сигналов: id  = $resultSignal->id");
 
 			//Отправляем результат по http
-			/**
-			 * @var SendResults $sendResults
-			 */
-			$sendResults = App::make('FintechFab\ActionsCalc\Queue\SendResults');
-			$url = $event->terminal->url;
+			$sendResults = App::make('FintechFab\ActionsCalc\Components\SendResults');
+			$url = $incomeEvent->terminal->url;
 
 			if ($url != '') {
-				$sendResults->sendHttp($url, $signal->id);
+				$sendResults->sendHttp($url, $resultSignal->id);
 			}
 
 			//Отправляем результат в очередь
-			if ($queue != '' && $url != '') {
-				$signal->setFlagQueueTrue();
-				$sendResults->requestToQueue($url, $queue, $signalSid);
+			$queue = $incomeEvent->terminal->queue;
+			if ($queue != '') {
+				$sendResults->sendQueue($queue, $signalSid);
+				$resultSignal->setFlagQueueTrue();
 			}
 
 		}

@@ -14,7 +14,7 @@ use Eloquent;
  * @property string  $updated_at
  * @property string  $created_at
  *
- * @method   static find() Terminal
+ * @method   static Terminal find()
  */
 class Terminal extends Eloquent
 {
@@ -23,16 +23,42 @@ class Terminal extends Eloquent
 
 	protected $fillable = array('name', 'url', 'queue', 'password', 'key',);
 
+	/**
+	 * @return IncomeEvent
+	 */
+	public function incomeEvent()
+	{
+		return $this->hasMany(IncomeEvent::class);
+	}
+
+	/**
+	 * @return Event
+	 */
 	public function event()
 	{
-		return $this->hasMany('FintechFab\ActionsCalc\Models\Event');
+		return $this->hasMany(Event::class);
 	}
 
-	public function rule()
+	/**
+	 * @return Signal
+	 */
+	public function signal()
 	{
-		return $this->hasMany('FintechFab\ActionsCalc\Models\Rule');
+		return $this->hasMany(Signal::class);
 	}
 
+	/**
+	 * @return Rule
+	 */
+	public function rules()
+	{
+		return $this->hasMany(Rule::class);
+	}
+
+	/**Создание нового пользователя
+	 *
+	 * @param $data
+	 */
 	public function newTerminal($data)
 	{
 		if (!$data['key']) {
@@ -47,6 +73,10 @@ class Terminal extends Eloquent
 		$this->save();
 	}
 
+	/**Изменение данных пользователя
+	 *
+	 * @param $data
+	 */
 	public function changeTerminal($data)
 	{
 		$this->name = $data['username'];

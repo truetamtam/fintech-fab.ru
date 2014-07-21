@@ -16,7 +16,7 @@ class CalcRequestTest extends CalcTestCase
 		parent::setUp();
 
 		$this->mock = Mockery::mock('FintechFab\ActionsCalc\Components\SendResults');
-		$this->sign = $sign = md5('terminal=1|event=im_hungry|key');
+		$this->sign = md5('terminal=1|event=im_hungry|key');
 	}
 
 	public function testGetRequest1()
@@ -24,8 +24,8 @@ class CalcRequestTest extends CalcTestCase
 
 		App::bind('FintechFab\ActionsCalc\Queue\SendResults', function () {
 			$this->mock
-				->shouldReceive('makeCurl')
-				->withArgs(['http://test', 'go_eat']);
+				->shouldReceive('sendHttp')
+				->withArgs(['http://test', '1']);
 			$this->mock
 				->shouldReceive('requestToQueue')
 				->withArgs(['queueTest', 'go_eat']);
@@ -55,8 +55,8 @@ class CalcRequestTest extends CalcTestCase
 
 		App::bind('FintechFab\ActionsCalc\Queue\SendResults', function () {
 			$this->mock
-				->shouldReceive('makeCurl')
-				->withArgs(['http://test', 'wait']);
+				->shouldReceive('sendHttp')
+				->withArgs(['http://test', '1']);
 			$this->mock
 				->shouldReceive('requestToQueue')
 				->withArgs(['queueTest', 'wait']);
@@ -86,8 +86,8 @@ class CalcRequestTest extends CalcTestCase
 
 		App::bind('FintechFab\ActionsCalc\Queue\SendResults', function () {
 			$this->mock
-				->shouldReceive('makeCurl')
-				->withArgs(['http://test', 'endure']);
+				->shouldReceive('sendHttp')
+				->withArgs(['http://test', '1']);
 			$this->mock
 				->shouldReceive('requestToQueue')
 				->withArgs(['queueTest', 'endure']);
@@ -136,8 +136,8 @@ class CalcRequestTest extends CalcTestCase
 
 		App::bind('FintechFab\ActionsCalc\Queue\SendResults', function () {
 			$this->mock
-				->shouldReceive('makeCurl')
-				->withArgs(['http://test', 'go_eat']);
+				->shouldReceive('sendHttp')
+				->withArgs(['http://test', '1']);
 			$this->mock
 				->shouldReceive('requestToQueue')
 				->withArgs(['queueTest', 'go_eat']);

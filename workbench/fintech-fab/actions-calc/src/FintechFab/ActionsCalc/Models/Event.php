@@ -5,41 +5,45 @@ namespace FintechFab\ActionsCalc\Models;
 use Eloquent;
 
 /**
- * @property integer  $id
- * @property integer  $terminal_id
- * @property string   $sid
- * @property string   $data
- * @property string   $updated_at
- * @property string   $created_at
- * @property Terminal $terminal
+ * @property integer $id
+ * @property integer $terminal_id
+ * @property string  $name
+ * @property string  $event_sid
+ * @property string  $updated_at
+ * @property string  $created_at
+ *
+ * @method static Event whereTerminalId()
+ * @method static Event whereEventSid()
+ *
  */
 class Event extends Eloquent
 {
 	protected $table = 'events';
 	protected $connection = 'ff-actions-calc';
 
-	protected $fillable = array('terminal_id', 'sid', 'data');
+	protected $fillable = array('terminal_id', 'name', 'event_sid');
 
-	/**
-	 * @return Terminal
-	 */
 	public function terminal()
 	{
-		return $this->belongsTo('FintechFab\ActionsCalc\Models\Terminal');
+		return $this->belongsTo(Terminal::class);
 	}
 
-	public function signal()
+	public function rules()
 	{
-		return $this->hasMany('FintechFab\ActionsCalc\Models\Signal');
+		return $this->hasMany(Rule::class);
 	}
 
-	public function newEvent($termId, $sid, $data)
+	/**
+	 * Получить событие по номеру терминала и коду события
+	 *
+	 * @param integer $termId
+	 * @param string  $eventSid
+	 *
+	 * @return Event
+	 */
+	public static function getEvent($termId, $eventSid)
 	{
-		$dataString = urldecode(http_build_query($data, null, ' | '));
-
-		$this->terminal_id = $termId;
-		$this->sid = $sid;
-		$this->data = $dataString;
-		$this->save();
+		return Event::whereTerminalId($termId)->whereEventSid($eventSid)->first();
 	}
+
 } 
