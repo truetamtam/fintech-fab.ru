@@ -46,7 +46,6 @@ class MainHandler
 		$countFitRules = count($fitRules);
 		if ($countFitRules == 0) {
 			Log::info('Соответствующих запросу правил не найдено');
-			Response::make()->header('Content-Type', 'application/json');
 
 			return ['countFitRules' => $countFitRules];
 		}
@@ -64,7 +63,6 @@ class MainHandler
 			//Отправляем результат по http
 			$sendResults = App::make('FintechFab\ActionsCalc\Components\SendResults');
 			$url = $incomeEvent->terminal->url;
-
 			if ($url != '') {
 				$sendResults->sendHttp($url, $resultSignal->id);
 			}
