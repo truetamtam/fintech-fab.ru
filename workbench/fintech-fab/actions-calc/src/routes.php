@@ -39,11 +39,48 @@ Route::group(array(
 });
 
 Route::post('actions-calc/account/newTerminal', array(
-	'as'   => 'newTerminal',
+	'as'   => 'calcNewTerminal',
 	'uses' => 'FintechFab\ActionsCalc\Controllers\AccountController@postNewTerminal',
 ));
 
 Route::post('actions-calc/account/changeData', array(
 	'as'   => 'changeDataCalc',
 	'uses' => 'FintechFab\ActionsCalc\Controllers\AccountController@postChangeData',
+));
+
+
+Route::post('actions-calc/tableEvents/changeData/', array(
+	'as'   => 'calcChangeDataEvents',
+	'uses' => 'FintechFab\ActionsCalc\Controllers\TablesController@postChangeDataEvents',
+));
+
+Route::post('actions-calc/tableEvents/addData/', array(
+	'as'   => 'calcAddDataEvents',
+	'uses' => 'FintechFab\ActionsCalc\Controllers\TablesController@postAddDataEvents',
+));
+
+
+Route::post('actions-calc/tableSignals/changeData/', array(
+	'as'   => 'calcChangeDataSignals',
+	'uses' => 'FintechFab\ActionsCalc\Controllers\TablesController@postChangeDataSignals',
+));
+
+Route::post('actions-calc/tableSignals/addData/', array(
+	'as'   => 'calcAddDataSignals',
+	'uses' => 'FintechFab\ActionsCalc\Controllers\TablesController@postAddDataSignals',
+));
+
+Route::post('actions-calc/tableRule/changeFlagRule/', array(
+	'as'   => 'calcChangeFlagRule',
+	'uses' => 'FintechFab\ActionsCalc\Controllers\TablesController@postChangeFlagRule',
+));
+
+Route::post('actions-calc/tableRules/changeData/', array(
+	'as'   => 'calcChangeDataRule',
+	'uses' => 'FintechFab\ActionsCalc\Controllers\TablesController@postChangeDataRule',
+));
+
+Route::post('actions-calc/tableRules/addData/', array(
+	'as'   => 'calcAddDataRule',
+	'uses' => 'FintechFab\ActionsCalc\Controllers\TablesController@postAddDataRule',
 ));

@@ -14,6 +14,8 @@ use Eloquent;
  *
  * @method static Event whereTerminalId()
  * @method static Event whereEventSid()
+ * @method static Event find()
+ * @method static Event links()
  *
  */
 class Event extends Eloquent
@@ -41,9 +43,37 @@ class Event extends Eloquent
 	 *
 	 * @return Event
 	 */
+
 	public static function getEvent($termId, $eventSid)
 	{
 		return Event::whereTerminalId($termId)->whereEventSid($eventSid)->first();
 	}
 
-} 
+	public function changeEvent($data)
+	{
+		$this->name = $data['name'];
+		$this->event_sid = $data['event_sid'];
+		$this->save();
+	}
+
+	public function newEvent($data)
+	{
+		$this->name = $data['name'];
+		$this->event_sid = $data['event_sid'];
+		$this->terminal_id = $data['terminal_id'];
+		$this->save();
+	}
+
+	public static function getEventSid()
+	{
+		$event = Event::select('id', 'event_sid')->get();
+		$result = array();
+		foreach ($event as $key => $value) {
+			$result[$value->id] = $value->event_sid;
+		}
+
+		return $result;
+	}
+
+
+}

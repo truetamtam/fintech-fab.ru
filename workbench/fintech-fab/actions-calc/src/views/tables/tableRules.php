@@ -8,6 +8,25 @@ use FintechFab\ActionsCalc\Models\Rule;
  */
 
 ?>
+<style type="text/css">
+	<?php require(__DIR__ . '/../layouts/inc/css/styleForTableRules.css') ?>
+</style>
+<script type="application/javascript">
+	<?php require(__DIR__ . '/../layouts/inc/js/EditTableRule.js') ?>
+</script>
+<?= View::make('ff-actions-calc::tables.inc.TableRule.changeDataRuleModal', array('rule' => $rules)) ?>
+
+<?= View::make('ff-actions-calc::tables.inc.TableRule.addDataRuleModal') ?>
+
+
+<?=
+Form::button('Добавить', array(
+	'class'       => 'btn btn-sm btn-info tableBtn tableAddBtn',
+	'data-toggle' => 'modal',
+	'data-target' => '#addDataRuleModal',
+));
+echo '<br><br>'
+?>
 <table class="table table-striped table-hover" id="ordersTable">
 	<tr>
 		<td><b>ID</b></td>
@@ -27,21 +46,26 @@ use FintechFab\ActionsCalc\Models\Rule;
 			<td><?= $rule->signal->signal_sid ?></td>
 			<td>
 				<?=
-				Form::checkbox('active', $rule->flag_active, array(
+				Form::checkbox('active', '', $rule->flag_active, array(
 					'class' => 'checkbox',
+					'id'    => $rule->id,
 				)) ?>
 			</td>
 			<td>
 				<?=
 				Form::button('Изменить', array(
-					'class'       => 'btn btn-sm btn-info tableBtn',
-					'data-action' => 'showStatus',
-					'data-id'     => $rule->id,
+					'class' => 'btn btn-sm btn-info btnEdit',
+					'data-action'    => 'showStatus',
+					'data-rule'      => $rule,
+					'data-toggle'    => 'modal',
+					'data-target'    => '#changeDataModal',
 				)) ?>
 			</td>
 		</tr>
 
+
 	<?php endforeach ?>
+
 </table>
 <?= $rules->links() ?>
 <div id="message" class="text-center"></div>
