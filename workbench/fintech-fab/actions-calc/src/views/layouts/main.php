@@ -29,7 +29,7 @@
 	<div class="large-12 columns">
 		<div class="nav-bar right">
 			<ul class="button-group">
-				<?php if (\FintechFab\ActionsCalc\Components\AuthHandler::isClientRegistered()): ?>
+				<?php if (\FintechFab\ActionsCalc\Components\AuthHandler::isTerminalRegistered()): ?>
 					<li>
 						<button id="auth-profile" class="button secondary small"><i class="fi-torso"></i></button>
 					</li>

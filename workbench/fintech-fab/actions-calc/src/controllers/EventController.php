@@ -5,7 +5,6 @@ namespace FintechFab\ActionsCalc\Controllers;
 use FintechFab\ActionsCalc\Components\Validators;
 use FintechFab\ActionsCalc\Models\Event;
 use Paginator;
-use Validator;
 use Input;
 use View;
 use Request;
@@ -19,30 +18,25 @@ class EventController extends BaseController
 {
 
 	/**
-	 * @var bool
-	 */
-	public $restful = true;
-
-	/**
 	 * Create event
 	 *
 	 * @return array|string
 	 */
 	public function create()
 	{
+
 		$oRequestData = Input::all();
 		$oRequestData['terminal_id'] = $this->iTerminalId;
 
-		$validator = Validator::make($oRequestData, Validators::getEventRules());
+		$oValidator = Validators::validate($oRequestData, Validators::getEventRules());
 
-		if ($validator->fails()) {
-			return json_encode(['status' => 'error', 'errors' => $validator->errors()]);
+		if ($oValidator->fails()) {
+			return $this->error($oValidator->failed());
 		}
 
-		$oEvent = Event::create($oRequestData);
-		$oEvent->push();
+		Event::create($oRequestData);
 
-		return json_encode(['status' => 'success', 'message' => 'Новое событие создано.']);
+		return $this->success('Новое событие создано.');
 	}
 
 	/**
@@ -57,31 +51,23 @@ class EventController extends BaseController
 		/** @var Event $event */
 		$event = Event::find($id);
 
-		// only view on GET
-		if (Request::isMethod('GET')) {
-			return View::make('ff-actions-calc::event.update', ['event' => $event]);
-		}
-
 		// update process
 		$oRequestData = Input::only('id', 'event_sid', 'name');
 
-		$aValidators = Validators::getEventRules();
-		// ignoring uniquiness of event_sid on update
-		$aValidators['event_sid'] = $aValidators['event_sid'] . ',' . $id;
-		$validator = Validator::make($oRequestData, $aValidators);
+		$oValidator = Validators::validate($oRequestData, Validators::getEventRules(), ['event_sid' => $id]);
 
-		if ($validator->fails()) {
-			return json_encode(['status' => 'error', 'errors' => $validator->errors()]);
+		if ($oValidator->fails()) {
+			return $this->error($oValidator->failed());
 		}
 
 		$event->name = $oRequestData['name'];
 		$event->event_sid = $oRequestData['event_sid'];
 
 		if ($event->save()) {
-			return json_encode(['status' => 'success', 'message' => 'Событие обновлено.', 'update' => $oRequestData]);
+			return $this->success('Событие обновлено.', ['update' => $oRequestData]);
 		}
 
-		return json_encode(['status' => 'error', 'message' => 'Не удалось обновить событие.']);
+		return $this->error('Не удалось обновить событие.');
 	}
 
 	/**
@@ -97,14 +83,14 @@ class EventController extends BaseController
 		$event = Event::find((int)$aRequest['id']);
 
 		if ($event->rules->count() > 0) {
-			return ['status' => 'error', 'message' => 'Сначала удалите правила.'];
+			return $this->error('Сначала удалите правила.');
 		}
 
 		if ($event->delete()) {
-			return json_encode(['status' => 'success', 'message' => 'Событие удалено.']);
+			return $this->success('Событие удалено.');
 		}
 
-		return json_encode(['status' => 'error', 'message' => 'Не удалось удалить событие.']);
+		return $this->error('Не удалось удалить событие.');
 	}
 
 	/**
@@ -120,7 +106,7 @@ class EventController extends BaseController
 		// setting page that stored in span#pagination-events-current-page in _events.php
 		Paginator::setCurrentPage($iPage);
 
-		$aoEvents = Event::where('terminal_id', '=', $this->iTerminalId)->orderBy('created_at', 'desc')->paginate(10);
+		$aoEvents = Event::whereTerminalId($this->iTerminalId)->orderBy('created_at', 'desc')->paginate(10);
 		$aoEvents->setBaseUrl('/actions-calc/events/table');
 
 		return View::make('ff-actions-calc::calculator._events_table', [

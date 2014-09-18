@@ -4,11 +4,8 @@ namespace FintechFab\ActionsCalc\Controllers;
 
 use FintechFab\ActionsCalc\Components\Validators;
 use FintechFab\ActionsCalc\Models\Rule;
-use FintechFab\ActionsCalc\Models\Signal;
-use Validator;
+use Exception;
 use Input;
-use View;
-use Request;
 use App;
 
 /**
@@ -27,12 +24,6 @@ class RuleController extends BaseController
 	 */
 	public function create()
 	{
-		if (Request::isMethod('GET')) {
-			$signals = Signal::whereTerminalId($this->iTerminalId)->get(['id', 'name', 'signal_sid']);
-
-			return View::make('ff-actions-calc::rule.create', compact('signals'));
-		}
-
 		// request data handling
 		$oRequestData = Input::all();
 
@@ -43,23 +34,20 @@ class RuleController extends BaseController
 		$oRequestData['terminal_id'] = $this->iTerminalId;
 
 		// validation
-		$validator = Validator::make($oRequestData, Validators::getRuleValidators());
+		$oValidator = Validators::validate($oRequestData, Validators::getRuleValidators());
 
-		if ($validator->fails()) {
-			return json_encode(['status' => 'error', 'errors' => $validator->errors()]);
+		if ($oValidator->fails()) {
+			return $this->error($oValidator->failed());
 		}
 
-		$oEvent = Rule::create($oRequestData);
-
-		if (!$oEvent->push()) {
-			return json_encode(['status' => 'error', 'message' => 'Не удалось создать правило.']);
+		try {
+			Rule::create($oRequestData);
+		} catch (Exception $e) {
+			return $this->error($e->getMessage());
 		}
 
-		return json_encode([
-			'status'  => 'success',
-			'message' => 'Новое правило создано.',
-			'data' => ['count' => $oEvent::whereEventId($oRequestData['event_id'])->count()]
-		]);
+		return $this->success('Новое правило создано.',
+			['data' => ['count' => Rule::whereEventId($oRequestData['event_id'])->count()]]);
 	}
 
 	/**
@@ -73,27 +61,22 @@ class RuleController extends BaseController
 	{
 		/** @var Rule $oRule */
 		$oRule = Rule::find($id);
-		$aoSignals = Signal::whereTerminalId($this->iTerminalId)->get(['id', 'name', 'signal_sid']);
-
-		if (Request::isMethod('GET')) {
-			return View::make('ff-actions-calc::rule.update', ['rule' => $oRule, 'signals' => $aoSignals]);
-		}
 
 		// update process
 		$oRequestData = Input::only('name', 'rule', 'event_id', 'signal_id');
-		$validator = Validator::make($oRequestData, Validators::getRuleValidators());
+		$oValidator = Validators::validate($oRequestData, Validators::getRuleValidators());
 
-		if ($validator->fails()) {
-			return json_encode(['status' => 'error', 'errors' => $validator->errors()]);
+		if ($oValidator->fails()) {
+			return $this->error($oValidator->failed());
 		}
 
 		$oRule->fill($oRequestData);
 
 		if ($oRule->save()) {
-			return json_encode(['status' => 'success', 'message' => 'Правило обновлено.', 'update' => $oRequestData]);
+			return $this->success('Правило обновлено.', ['update' => $oRequestData]);
 		}
 
-		return json_encode(['status' => 'error', 'message' => 'Не удалось обновить событие.']);
+		return $this->error('Не удалось обновить событие.');
 	}
 
 	/**
@@ -116,14 +99,10 @@ class RuleController extends BaseController
 
 			$iRulesCount = $rule::whereEventId($rule->event_id)->count();
 
-			return json_encode([
-				'status'  => 'success',
-				'message' => 'Событие удалено.',
-				'data'    => ['count' => $iRulesCount]
-			]);
+			return $this->success('Правило удалено.', ['data' => ['count' => $iRulesCount]]);
 		}
 
-		return json_encode(['status' => 'error', 'message' => 'Не удалось удалить событие.']);
+		return $this->error('Не удалось удалить правило.');
 	}
 
 }

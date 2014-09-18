@@ -22,6 +22,7 @@ use Eloquent;
  * @method static Rule whereTerminalId()
  * @method static Rule whereEventId()
  * @method static Rule whereFlagActive()
+ * @method static Rule whereSignalId()
  */
 class Rule extends Eloquent
 {

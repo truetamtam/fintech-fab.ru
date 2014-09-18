@@ -184,5 +184,19 @@ gulp.task('build-publish', aTasks, shell.task([
 	'cd ../../.. && php artisan asset:publish --bench=fintech-fab/actions-calc'
 ]));
 
+// just publish
+gulp.task('publish-assets', shell.task([
+	'cd ../../.. && php artisan asset:publish --bench=fintech-fab/actions-calc'
+]));
+
 // buid all
 gulp.task('build-all', aTasks);
+
+// watching
+gulp.task('watch', function () {
+	var watcher = gulp.watch(destPath + 'js/*.js', ['publish-assets']);
+	watcher.on('change', function (event) {
+		console.log('File ' + event.path + ' was ' + event.type + ' running tasks...');
+	});
+});
+

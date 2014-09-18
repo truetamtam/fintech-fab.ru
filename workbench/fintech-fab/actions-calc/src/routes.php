@@ -6,6 +6,11 @@
  */
 
 // main entry point
+use FintechFab\ActionsCalc\Components\AuthHandler;
+use FintechFab\ActionsCalc\Models\Rule;
+use FintechFab\ActionsCalc\Models\Signal;
+use FintechFab\ActionsCalc\Models\Event;
+
 Route::post('actions-calc', [
 	'as'   => 'getRequest',
 	'uses' => 'FintechFab\ActionsCalc\Controllers\RequestController@getRequest',
@@ -20,6 +25,13 @@ Route::any('/actions-calc/registration', [
 Route::group(['before' => 'ff-actions-calc.auth'], function () {
 
 	// signals
+	// signal edit
+	Route::get('/signal/{id}/edit', function ($id) {
+		$signal = Signal::find($id);
+
+		return View::make('ff-actions-calc::signal.edit', compact('signal'));
+	});
+	// signal resources
 	Route::resource('signal', 'FintechFab\ActionsCalc\Controllers\SignalController');
 
 	// events
@@ -28,7 +40,13 @@ Route::group(['before' => 'ff-actions-calc.auth'], function () {
 		'as'   => 'event.delete',
 		'uses' => 'FintechFab\ActionsCalc\Controllers\EventController@delete'
 	]);
-	// update event
+	// event update, open
+	Route::get('/actions-calc/event/update/{id}', function ($id) {
+		$event = Event::find($id);
+
+		return View::make('ff-actions-calc::event.update', ['event' => $event]);
+	});
+	// event update
 	Route::match(['POST', 'GET'], '/actions-calc/event/update/{id?}', [
 		'as'   => 'event.update',
 		'uses' => 'FintechFab\ActionsCalc\Controllers\EventController@update',
@@ -58,13 +76,26 @@ Route::group(['before' => 'ff-actions-calc.auth'], function () {
 	]);
 	// event -> rules:
 	// rule create
-	Route::match(['GET', 'POST'], '/actions-calc/rule/create', [
+	Route::get('/actions-calc/rule/create', function () {
+		$signals = Signal::whereTerminalId(AuthHandler::getTerminalId())->get(['id', 'name', 'signal_sid']);
+
+		return View::make('ff-actions-calc::rule.create', compact('signals'));
+	});
+	Route::post('/actions-calc/rule/create', [
 		'as'   => 'rule.create',
 		'uses' => 'FintechFab\ActionsCalc\Controllers\RuleController@create',
 	]);
 	// event -> rules:
 	// rule update
-	Route::match(['POST', 'GET'], '/actions-calc/rule/update/{id?}', [
+	Route::get('/actions-calc/rule/update/{id}', function ($id) {
+		$oRule = Rule::find($id);
+		$aoSignals = Signal::whereTerminalId(AuthHandler::getTerminalId())->get(['id', 'name', 'signal_sid']);
+
+		return View::make('ff-actions-calc::rule.update', ['rule' => $oRule, 'signals' => $aoSignals]);
+	});
+	// event -> rules:
+	// rule update
+	Route::post('/actions-calc/rule/update/{id?}', [
 		'as'   => 'rule.update',
 		'uses' => 'FintechFab\ActionsCalc\Controllers\RuleController@update',
 	])->where('id', '[0-9]+');

@@ -33,7 +33,7 @@ class AuthController extends BaseController
 	 */
 	public function registration()
 	{
-		if (AuthHandler::isClientRegistered()) {
+		if (AuthHandler::isTerminalRegistered()) {
 			return Redirect::route('calc.manage');
 		}
 

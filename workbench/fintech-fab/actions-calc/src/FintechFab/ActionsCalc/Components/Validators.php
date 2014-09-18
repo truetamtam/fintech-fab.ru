@@ -2,6 +2,9 @@
 
 namespace FintechFab\ActionsCalc\Components;
 
+use Response;
+use Validator;
+
 /**
  * Class Validators
  *
@@ -118,4 +121,25 @@ class Validators
 			'password_confirmation' => 'required'
 		];
 	}
-} 
+
+	/**
+	 * @param      $aData
+	 * @param      $aValidators
+	 * @param null $aExcept
+	 *
+	 * @return \Illuminate\Validation\Validator
+	 */
+	public static function validate($aData, $aValidators, $aExcept = null)
+	{
+		if (is_array($aExcept)) {
+			$aValidators[key($aExcept)] = $aValidators[key($aExcept)] . ',' . $aExcept[key($aExcept)];
+		}
+
+		$oValidator = Validator::make($aData, $aValidators);
+		/** @noinspection PhpUndefinedMethodInspection */
+		$oValidator->getPresenceVerifier()->setConnection('ff-actions-calc');
+
+		return $oValidator;
+	}
+
+}

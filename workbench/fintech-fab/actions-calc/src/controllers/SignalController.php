@@ -2,6 +2,7 @@
 
 namespace FintechFab\ActionsCalc\Controllers;
 
+use Exception;
 use FintechFab\ActionsCalc\Components\Validators;
 use FintechFab\ActionsCalc\Models\Rule;
 use FintechFab\ActionsCalc\Models\Signal;
@@ -26,41 +27,25 @@ class SignalController extends BaseController
 
 		$aRequestData['terminal_id'] = $this->iTerminalId;
 
-		$validator = Validator::make($aRequestData, Validators::getSignalValidator());
+		$oValidator = Validators::validate($aRequestData, Validators::getSignalValidator());
 
-		if ($validator->fails()) {
-			return ['status' => 'error', 'errors' => $validator->errors()];
+		if ($oValidator->fails()) {
+			return $this->error($oValidator->failed());
 		}
 
 		$oSignal = Signal::create($aRequestData);
 		$aReturnData = [];
 
 		if (!$oSignal->push()) {
-			return ['status' => 'error', 'message' => 'Не удалось создать сигнал'];
+			return $this->error('Не удалось создать сигнал');
 		}
 
 		$aReturnData['id'] = $oSignal->id;
 		$aReturnData['name'] = $aRequestData['name'];
 		$aReturnData['signal_sid'] = $aRequestData['signal_sid'];
 
-		return ['status' => 'success', 'message' => 'Сигнал успешно создан', 'data' => $aReturnData];
+		return $this->success('Сигнал успешно создан', ['data' => $aReturnData]);
 	}
-
-
-	/**
-	 * Show the form for editing the specified resource.
-	 *
-	 * @param  int $id
-	 *
-	 * @return \Illuminate\View\View
-	 */
-	public function edit($id)
-	{
-		$signal = Signal::find($id);
-
-		return View::make('ff-actions-calc::signal.edit', compact('signal'));
-	}
-
 
 	/**
 	 * Update the specified resource in storage.
@@ -76,12 +61,10 @@ class SignalController extends BaseController
 		$aRequestData = Input::only('name', 'signal_sid');
 
 		// validation
-		$aValidatorRules = Validators::getSignalValidator();
-		$aValidatorRules['signal_sid'] = $aValidatorRules['signal_sid'] . ',' . $id;
-		$validator = Validator::make($aRequestData, $aValidatorRules);
+		$oValidator = Validators::validate($aRequestData, Validators::getSignalValidator(), ['signal_sid' => $id]);
 
-		if ($validator->fails()) {
-			return ['status' => 'error', 'errors' => $validator->errors()];
+		if ($oValidator->fails()) {
+			return $this->error($oValidator->failed());
 		}
 
 		// filling and updating
@@ -91,12 +74,18 @@ class SignalController extends BaseController
 			return ['status' => 'error', 'message' => 'Не удалось обновить сигнал'];
 		}
 
-		return [
-			'status'     => 'success', 'data' => [
+		try {
+			$oSignal->save();
+		} catch (Exception $e) {
+			return $this->error($e->getMessage());
+		}
+
+		return $this->success("Сигнал \"$oSignal->name\" обновлён.", [
+			'data' => [
 				'name'       => $oSignal->name,
 				'signal_sid' => $oSignal->signal_sid
-			], 'message' => "Сигнал \"$oSignal->name\" обновлён."
-		];
+			]
+		]);
 	}
 
 
@@ -112,21 +101,23 @@ class SignalController extends BaseController
 		/** @var Signal $oSignal */
 		$oSignal = Signal::find($id);
 
-		$oRules = Rule::where('signal_id', '=', $id)->first();
+		$oRules = Rule::whereSignalId($id)->first();
 
 		if (!is_null($oRules)) {
-			return ['status' => 'error', 'message' => 'Сигнал используется.'];
+			return $this->error('Сигнал используется.');
 		}
 
 		if (is_null($oSignal)) {
 			App::abort(401, 'Нет такого правила');
 		}
 
-		if (!$oSignal->delete()) {
-			return ['status' => 'error', 'message' => 'Не удалось удалить событие.'];
+		try {
+			$oSignal->delete();
+		} catch (Exception $e) {
+			return $this->error($e->getMessage());
 		}
 
-		return ['status' => 'success', 'message' => 'Событие удалено.'];
+		return $this->success('Событие удалено.');
 	}
 
 }

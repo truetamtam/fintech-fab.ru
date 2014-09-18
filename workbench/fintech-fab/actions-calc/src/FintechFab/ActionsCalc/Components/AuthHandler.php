@@ -39,13 +39,20 @@ class AuthHandler
 	 *
 	 * @return bool
 	 */
-	public static function isClientRegistered()
+	public static function isTerminalRegistered()
 	{
-		$iClientId = Config::get('ff-actions-calc::terminal_id');
-		$iClientId = (int)$iClientId;
+		$iTerminalId = Config::get('ff-actions-calc::terminal_id');
 
-		$terminal = Terminal::find($iClientId, ['id']);
+		return !is_null(Terminal::find($iTerminalId, ['id']));
+	}
 
-		return !(is_null($terminal));
+	/**
+	 * Get terminal id.
+	 *
+	 * @return int
+	 */
+	public static function getTerminalId()
+	{
+		return (int)Config::get('ff-actions-calc::terminal_id');
 	}
 }

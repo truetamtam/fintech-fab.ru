@@ -4,6 +4,7 @@ namespace FintechFab\ActionsCalc\Controllers;
 
 use App;
 use Controller;
+use Response;
 use View;
 use Request;
 use Config;
@@ -66,5 +67,35 @@ class BaseController extends Controller
 	protected function makePartial($sTemplate, $aParams = array())
 	{
 		return View::make($this->sLayoutFolderName . '.' . $sTemplate, $aParams);
+	}
+
+	/**
+	 * @param string|array $mMessages
+	 *
+	 * @return \Illuminate\Http\JsonResponse
+	 */
+	protected function error($mMessages)
+	{
+		$jsonData = is_array($mMessages) ? ['status' => 'error', 'errors' => $mMessages]
+			: ['status' => 'error', 'message' => $mMessages];
+
+		return Response::json($jsonData, 400);
+	}
+
+	/**
+	 * @param $sMessage
+	 * @param $aData
+	 *
+	 * @return \Illuminate\Http\JsonResponse
+	 */
+	protected function success($sMessage, $aData = null)
+	{
+		$aJsonData = ['status' => 'success', 'message' => $sMessage];
+
+		if (is_array($aData)) {
+			$aJsonData = array_merge($aJsonData, $aData);
+		}
+
+		return Response::json($aJsonData);
 	}
 }
