@@ -192,7 +192,8 @@ gulp.task('publish-assets', shell.task([
 // buid all
 gulp.task('build-all', aTasks);
 
-// watching
+
+// watching assets, publishing if changed
 gulp.task('watch', function () {
 	var watcher = gulp.watch(destPath + 'js/*.js', ['publish-assets']);
 	watcher.on('change', function (event) {

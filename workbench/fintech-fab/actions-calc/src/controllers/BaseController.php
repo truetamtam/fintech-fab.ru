@@ -4,10 +4,10 @@ namespace FintechFab\ActionsCalc\Controllers;
 
 use App;
 use Controller;
+use FintechFab\ActionsCalc\Components\AuthHandler;
 use Response;
 use View;
 use Request;
-use Config;
 
 /**
  * Class BaseController
@@ -30,7 +30,7 @@ class BaseController extends Controller
 	 */
 	public function __construct()
 	{
-		$this->iTerminalId = (int)Config::get('ff-actions-calc::terminal_id');
+		$this->iTerminalId = AuthHandler::getTerminalId();
 	}
 
 	/**

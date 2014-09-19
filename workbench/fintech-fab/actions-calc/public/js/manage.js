@@ -4,6 +4,31 @@
  *
  * @author Ulashev Roman <truetamtam@gmail.com>
  */
+// global handlers
+$(document).ajaxError(function (e, xhr) {
+
+	var oResponseText = JSON.parse(xhr.responseText);
+
+	// catching script message
+	if (oResponseText.message != undefined) {
+		toastr.error(oResponseText.message)
+	}
+	// catching exception messages
+	if (oResponseText.error != undefined) {
+		if (oResponseText.error.message != undefined && oResponseText.error.message.length > 0) {
+			toastr.error(oResponseText.error.message);
+		}
+		if (oResponseText.error.type != undefined) {
+			toastr.error(oResponseText.error.type);
+		}
+	}
+}).ajaxSuccess(function (e, xhr, opt, oData) {
+	if (oData.message != undefined) {
+		toastr.success(oData.message);
+	}
+});
+
+
 $(document).ready(function () {
 
 	var $body = $('body');
@@ -85,24 +110,24 @@ $(document).ready(function () {
 			$form.serialize(),
 			function (oData) {
 				if (oData.status == 'success') {
-					toastr.success(oData.message);
 					$('#modal-event-create').foundation('reveal', 'close');
 					updateEventsTable();
 					clearFormErrors($form);
-				} else if (oData.status == 'error') {
-					revealFormErrors($form, oData.errors);
 				}
 				return false;
 			},
 			'json'
-		).always(function () {
+		).error(function (xhr) {
+				revealFormErrors($form, JSON.parse(xhr.responseText).errors);
+			})
+			.always(function () {
 				buttonWakeUp($button);
 			});
 
 		return false;
 	});
 	// events:
-	// event udpate modal - open
+	// event update modal - open
 	$body.on('click', 'button.edit-rule', function () {
 
 		var $th = $(this);
@@ -124,7 +149,7 @@ $(document).ready(function () {
 			});
 	});
 	// events:
-	// event udpate modal - update
+	// event update modal - update
 	$body.on('click', '#button-event-update', function (e) {
 		e.preventDefault();
 
@@ -132,21 +157,22 @@ $(document).ready(function () {
 		var $eventId = $th.closest('form').data('id');
 
 		buttonSleep($th);
+
 		$.post(
 			'/actions-calc/event/update/' + $eventId,
 			$th.closest('form').serialize(),
 			function (oData) {
 				if (oData.status == 'success') {
 					$('#modal-update-event').foundation('reveal', 'close');
-					console.log(oData);
 					updateRuleRow(oData.update);
 					clearFormErrors($th);
-				} else if (oData.status == 'error') {
-					revealFormErrors($th.closest('form'), oData.errors);
 				}
 			},
 			'json'
-		).always(function () {
+		).error(function (xhr) {
+				revealFormErrors($th.closest('form'), JSON.parse(xhr.responseText).errors);
+			})
+			.always(function () {
 				buttonWakeUp($th);
 			});
 
@@ -174,8 +200,6 @@ $(document).ready(function () {
 						$nextRow.fadeOut();
 					}
 					$thisRow.fadeOut();
-				} else if (oData.status == 'error') {
-					toastr.warning(oData.message);
 				}
 				return false;
 			},
@@ -183,12 +207,11 @@ $(document).ready(function () {
 		).always(function () {
 				loadingDown($eventsContainer);
 				buttonWakeUp($button);
-			}).fail(function (xhr) {
-				alert(xhr.responseText);
 			});
 
 		return false;
 	});
+
 	// events:
 	// events search
 	$body.on('click', 'button#search-event', function () {
@@ -269,13 +292,6 @@ $(document).ready(function () {
 			url: '/actions-calc/manage/toggle-rule-flag',
 			data: {id: $iRuleId, flag_active: sFlagState},
 			beforeSend: loadingUp($eventsContainer),
-			success: function (oData) {
-				if (oData.status == 'success') {
-					toastr.info(oData.message);
-				} else if (oData.status == 'error') {
-					toastr.error(oData.message);
-				}
-			},
 			dataType: 'json'
 		}).always(function () {
 			loadingDown($eventsContainer);
@@ -355,8 +371,6 @@ $(document).ready(function () {
 		).always(function () {
 				buttonWakeUp($th);
 				loadingDown($eventsContainer);
-			}).fail(function (xhr) {
-				alert(xhr.responseText);
 			});
 
 		return false;
@@ -391,12 +405,7 @@ $(document).ready(function () {
 			});
 		});
 
-		console.log('object aoRuleData');
-		console.log(aoRuleData);
-
 		var sRules = JSON.stringify(aoRuleData);
-		console.log('stringify sRules');
-		console.log(sRules);
 
 		// updating hidden input with rules
 		$submit.closest('form').find('input[name="rule"]').val(sRules);
@@ -414,16 +423,13 @@ $(document).ready(function () {
 					var $ruleId = $('#modal-rule-create').find('input[name="event_id"]').val();
 					updateEventRules($ruleId, $('#events-table-container'));
 					$modalRuleCreate.foundation('reveal', 'close');
-					toastr.success(oData.message);
-				} else if (oData.status == 'error') {
-					revealFormErrors($submit.closest('form'), oData.errors);
 				}
 			},
 			'json'
 		).always(function () {
 				buttonWakeUp($submit);
 			}).fail(function (xhr) {
-				alert(xhr.responseText);
+				revealFormErrors($submit.closest('form'), JSON.parse(xhr.responseText).errors);
 			});
 
 		return false;
@@ -489,12 +495,7 @@ $(document).ready(function () {
 			});
 		});
 
-		console.log('object aoRuleData');
-		console.log(aoRuleData);
-
 		var sRules = JSON.stringify(aoRuleData);
-		console.log('stringify sRules');
-		console.log(sRules);
 
 		// updating hidden input with rules
 		$th.closest('form').find('input[name="rule"]').val(sRules);
@@ -503,6 +504,7 @@ $(document).ready(function () {
 
 		// update rule request
 		buttonSleep($th);
+
 		$.post(
 			'/actions-calc/rule/update/' + $ruleId,
 			$th.closest('form').serialize(),
@@ -510,16 +512,13 @@ $(document).ready(function () {
 				if (oData.status == 'success') {
 					updateEventRules($ruleId, $('#events-table-container'));
 					$('#modal-rule-update').foundation('reveal', 'close');
-					toastr.success(oData.message);
-				} else if (oData.status == 'error') {
-					revealFormErrors($th.closest('form'), oData.errors);
 				}
 			},
 			'json'
 		).always(function () {
 				buttonWakeUp($th);
-			}).fail(function (xhr) {
-				alert(xhr.responseText);
+			}).error(function (xhr) {
+				revealFormErrors($th.closest('form'), JSON.parse(xhr.responseText).errors);
 			});
 
 		return false;
@@ -542,7 +541,6 @@ $(document).ready(function () {
 				if (oData.status == 'success') { // success
 					// update event -> rules button counter
 					updRulesCountFromRules($delButton, oData);
-					console.log($('button.see-rules').data('rules-count'));
 					// deleted, removing table records and opened rules, if exists
 					$thisRow.fadeOut();
 					// closing rules table if 0 rules
@@ -552,15 +550,12 @@ $(document).ready(function () {
 						$parentEventRow.prev('tr[data-id=' + iParentEventId + ']').find('button.close-rules').click();
 					}
 				}
-				buttonWakeUp($delButton);
 				return false;
 			},
 			'json'
 		).always(function () {
 				loadingDown($eventsContainer);
 				buttonWakeUp($delButton);
-			}).fail(function (xhr) {
-				alert(xhr.responseText);
 			});
 
 		return false;
@@ -598,16 +593,13 @@ $(document).ready(function () {
 					oSignalRow[1] = oData.data.name;
 
 					$signalsTable.row.add(oSignalRow).draw().node();
-					toastr.success(oData.message);
-				} else if (oData.status == 'error') {
-					revealFormErrors($form, oData.errors);
 				}
 			},
 			'json'
 		).always(function () {
 				buttonWakeUp($button);
 			}).fail(function (xhr) {
-				alert(xhr.responseText);
+				revealFormErrors($form, JSON.parse(xhr.responseText).errors);
 			});
 
 		return false;
@@ -653,16 +645,12 @@ $(document).ready(function () {
 			success: function (oData) {
 				if (oData.status == 'success') {
 					$button.closest('tr[id=' + iSignalId + ']').fadeOut();
-				} else if (oData.status == 'error') {
-					toastr.error(oData.message);
 				}
 			},
 			dataType: 'json'
 		}).always(function () {
 			buttonWakeUp($button);
 			loadingDown($signalsContainer);
-		}).fail(function (xhr) {
-			alert(xhr.responseText);
 		});
 
 		return false;
@@ -690,18 +678,13 @@ $(document).ready(function () {
 					oSignalRow[0] = oData.data.signal_sid;
 					oSignalRow[1] = oData.data.name;
 					$signalsTable.row('[id=' + iSignalId + ']').data(oSignalRow).draw();
-
-					toastr.success(oData.message);
-
-				} else if (oData.status == 'error') {
-					revealFormErrors($form, oData.errors);
 				}
 			},
 			dataType: 'json'
 		}).always(function () {
 			buttonWakeUp($button);
 		}).fail(function (xhr) {
-			alert(xhr.responseText);
+			revealFormErrors($form, JSON.parse(xhr.responseText).errors);
 		});
 
 		return false;
@@ -999,6 +982,12 @@ function updRulesCountFromRules($button, oData) {
 	var $eventId = $rulesTableRow.data('event-rules');
 	var $buttonSeeRules = $rulesTableRow.prev('tr[data-id=' + $eventId + ']').find('button.see-rules');
 
+	if (oData.data.count < 1) {
+		$buttonSeeRules.addClass('disabled');
+	} else {
+		$buttonSeeRules.removeClass('disabled');
+	}
+
 	$buttonSeeRules.data('rules-count', oData.data.count);
 	$buttonSeeRules.find('span').text(oData.data.count);
 }
@@ -1012,6 +1001,12 @@ function updRulesCountFromEvent(oData) {
 	var iEventId = $('#modal-rule-create').find('input[name="event_id"]').val();
 	var $ruleRow = $('#events-table-container:not(.in-modal)').find('tbody tr[data-id=' + iEventId + ']');
 	var $seeRules = $ruleRow.find('button.see-rules');
+
+	if (oData.data.count < 1) {
+		$seeRules.addClass('disabled');
+	} else {
+		$seeRules.removeClass('disabled');
+	}
 
 	$seeRules.data('rules-count', oData.data.count);
 	$seeRules.find('span').text(oData.data.count);

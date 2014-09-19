@@ -35,7 +35,9 @@
 			<td>
 				<ul class="event-buttons button-group right">
 					<li>
-						<button data-rules-count="<?php echo $event->rules->count(); ?>" class="tiny button see-rules">
+						<?php $iRulesCount = $event->rules->count(); ?>
+						<?php $buttonStatus = $iRulesCount > 0 ? '' : ' disabled'; ?>
+						<button data-rules-count="<?php echo $iRulesCount; ?>" class="tiny button see-rules<?php echo $buttonStatus ?>">
 							<span><?php echo $event->rules->count(); ?></span>&nbsp;<i class="fi-eye"></i></button>
 						<button class="tiny button close-rules" style="display: none;">закрыть</button>
 					</li>

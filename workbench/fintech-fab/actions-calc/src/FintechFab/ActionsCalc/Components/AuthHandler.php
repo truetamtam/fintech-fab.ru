@@ -4,6 +4,7 @@ namespace FintechFab\ActionsCalc\Components;
 
 use FintechFab\ActionsCalc\Models\Terminal;
 use Config;
+use Hash;
 
 /**
  * Class AuthHandler
@@ -54,5 +55,29 @@ class AuthHandler
 	public static function getTerminalId()
 	{
 		return (int)Config::get('ff-actions-calc::terminal_id');
+	}
+
+	/**
+	 * Get password.
+	 *
+	 * @param $sPassword
+	 *
+	 * @return string
+	 */
+	public static function getHashedPassword($sPassword)
+	{
+		return Hash::make(trim($sPassword));
+	}
+
+	/**
+	 * Generate terminal key.
+	 *
+	 * @param $sName
+	 *
+	 * @return string
+	 */
+	public static function getKey($sName)
+	{
+		return sha1($sName . microtime(true) . rand(10000, 90000));
 	}
 }

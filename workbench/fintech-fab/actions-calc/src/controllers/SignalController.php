@@ -6,9 +6,7 @@ use Exception;
 use FintechFab\ActionsCalc\Components\Validators;
 use FintechFab\ActionsCalc\Models\Rule;
 use FintechFab\ActionsCalc\Models\Signal;
-use Validator;
 use Input;
-use View;
 use App;
 
 /**
@@ -69,10 +67,6 @@ class SignalController extends BaseController
 
 		// filling and updating
 		$oSignal->fill($aRequestData);
-
-		if (!$oSignal->save()) {
-			return ['status' => 'error', 'message' => 'Не удалось обновить сигнал'];
-		}
 
 		try {
 			$oSignal->save();

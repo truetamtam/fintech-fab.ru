@@ -3,6 +3,7 @@
 namespace FintechFab\ActionsCalc\Controllers;
 
 use Config;
+use Exception;
 use FintechFab\ActionsCalc\Components\AuthHandler;
 use FintechFab\ActionsCalc\Components\Validators;
 use FintechFab\ActionsCalc\Models\Terminal;
@@ -33,36 +34,30 @@ class AuthController extends BaseController
 	 */
 	public function registration()
 	{
-		if (AuthHandler::isTerminalRegistered()) {
-			return Redirect::route('calc.manage');
-		}
-
-		$iTerminalId = Config::get('ff-actions-calc::terminal_id');
-
-		// view form on GET
-		if (Request::isMethod('GET')) {
-			return $this->make('auth.registration', ['terminal_id' => $iTerminalId]);
-		}
-
 		// data
 		$aRequestData = Input::all();
 
 		// validation
-		$validator = Validator::make($aRequestData, Validators::getTerminalValidators());
+		$oValidator = Validators::validate($aRequestData, Validators::getTerminalValidators());
 
-		if ($validator->fails()) {
-			$iTerminalId = Config::get('ff-actions-calc::terminal_id');
-			$aRequestData['id'] = $iTerminalId;
-
-			return Redirect::to(route('auth.registration'))->withInput($aRequestData)->withErrors($validator);
+		if ($oValidator->fails()) {
+			return Redirect::to(route('auth.registration'))->withInput($aRequestData)->withErrors($oValidator);
 		}
 
-		// data valid
-		$aRequestData['password'] = Hash::make($aRequestData['password']);
+		// data valid here
+		$aRequestData['password'] = AuthHandler::getHashedPassword($aRequestData['password']);
 		$aRequestData['key'] = (strlen($aRequestData['key']) < 1) ?
-			sha1($aRequestData['name'] . microtime(true) . rand(10000, 90000)) : $aRequestData['key'];
+			AuthHandler::getKey($aRequestData['name']) : $aRequestData['key'];
 
-		Terminal::create($aRequestData);
+		$oNewTerminal = new Terminal;
+		$oNewTerminal->fill($aRequestData);
+		$oNewTerminal->password = $aRequestData['password'];
+
+		try {
+			$oNewTerminal->save();
+		} catch (Exception $e) {
+			return $this->error($e->getMessage());
+		}
 
 		return Redirect::route('calc.manage');
 	}
@@ -72,23 +67,22 @@ class AuthController extends BaseController
 	 *
 	 * @return $this|array|\Illuminate\Http\RedirectResponse|\Illuminate\View\View
 	 */
-	public function profile() // TODO: Too fat. To several methods.
+	public function profile()
 	{
-		$iTerminalId = Config::get('ff-actions-calc::terminal_id');
 		$aRequestData = Input::all();
 		/** @var Terminal $oTerminal */
-		$oTerminal = Terminal::find($iTerminalId);
+		$oTerminal = Terminal::find($this->iTerminalId);
 
 		// on GET only opening, and fill in
 		if (Request::isMethod('GET')) {
 			return View::make('ff-actions-calc::auth.profile', ['terminal' => $oTerminal]);
 		}
 
-		$validator = Validator::make($aRequestData, Validators::getProfileValidators());
+		$oValidator = Validators::validate($aRequestData, Validators::getProfileValidators());
 
 		// validation fails
-		if ($validator->fails()) {
-			$oErrors = $validator->errors();
+		if ($oValidator->fails()) {
+			$oErrors = $oValidator->errors();
 
 			return Redirect::to(route('auth.profile'))->withInput($aRequestData)->withErrors($oErrors);
 		}
@@ -96,26 +90,25 @@ class AuthController extends BaseController
 		// password change
 		if (isset($aRequestData['change_password']) && $aRequestData['change_password'] == 1) {
 
-			$validator = Validator::make($aRequestData, Validators::getProfileChangePassValidators());
+			$oValidator = Validators::validate($aRequestData, Validators::getProfileChangePassValidators());
 
-			if ($validator->fails()) {
+			if ($oValidator->fails()) {
 
-				$oErrors = $validator->errors();
+				$oErrors = $oValidator->errors();
 
 				return Redirect::to(route('auth.profile'))->withInput($aRequestData)->withErrors($oErrors);
 			}
 
 			// current password check
 			if (Hash::check($aRequestData['current_password'], $oTerminal->password) === false) {
-				$oErrors = $validator->errors();
+				$oErrors = $oValidator->errors();
 				$oErrors->add('current_password', 'Текущий пароль и введённый, не совпадают.');
 
 				return Redirect::to(route('auth.profile'))->withInput($aRequestData)->withErrors($oErrors);
 			}
 
 			// valid and saving
-			$aRequestData['password'] = Hash::make(trim($aRequestData['password']));
-			$oTerminal->password = $aRequestData['password'];
+			$oTerminal->password = AuthHandler::getHashedPassword($aRequestData['password']);
 		} else {
 			unset($aRequestData['password']);
 		}
@@ -124,8 +117,6 @@ class AuthController extends BaseController
 
 		if ($oTerminal->save()) {
 			Session::flash('auth.profile.success', 'Данные успешно обновлены.');
-
-			return Redirect::to(route('auth.profile'))->withInput($aRequestData);
 		}
 
 		return Redirect::to(route('auth.profile'))->withInput($aRequestData);

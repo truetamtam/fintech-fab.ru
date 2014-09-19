@@ -122,7 +122,10 @@ class EventController extends BaseController
 	public function search()
 	{
 		$q = e(Input::get('q'));
-		$aoEvents = Event::where('event_sid', 'LIKE', "%$q%")->get();
+		$aoEvents = Event::where('event_sid', 'LIKE', "%$q%")
+			->orWhere('name', 'LIKE', "%$q%")
+			->having('terminal_id', '=', $this->iTerminalId)
+			->get();
 
 		return View::make('ff-actions-calc::calculator._events_table', [
 			'events' => $aoEvents,

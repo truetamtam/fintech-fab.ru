@@ -17,8 +17,18 @@ Route::post('actions-calc', [
 ]);
 
 // auth registration
-Route::any('/actions-calc/registration', [
-	'as'   => 'auth.registration',
+Route::get('/actions-calc/registration', [
+	'as' => 'auth.registration', function () {
+
+		if (AuthHandler::isTerminalRegistered()) {
+			return Redirect::route('calc.manage');
+		}
+
+		return View::make('ff-actions-calc::layouts.main')
+			->nest('content', 'ff-actions-calc::auth.registration', ['terminal_id' => AuthHandler::getTerminalId()]);
+	}
+]);
+Route::post('/actions-calc/registration', [
 	'uses' => 'FintechFab\ActionsCalc\Controllers\AuthController@registration'
 ]);
 
