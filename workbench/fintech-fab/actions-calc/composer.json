@@ -1,26 +1,32 @@
 {
-    "name": "fintech-fab/actions-calc",
-    "description": "",
-    "authors": [
-        {
-            "name": "fintech-fab",
-            "email": "dev@fintech-fab.ru"
-        }
-    ],
-    "require": {
-        "php": ">=5.4.0",
-	    "illuminate/support": "4.2.*",
-	    "datatables/datatables": "dev-master"
-    },
-    "autoload": {
-        "classmap": [
-            "src/migrations",
-	        "src/controllers",
-	        "tests"
-        ],
-        "psr-0": {
-            "FintechFab\\ActionsCalc\\": "src/"
-        }
-    },
-    "minimum-stability": "stable"
+	"name": "fintech-fab/actions-calc",
+	"type": "service",
+	"description": "Decision calculator, depending on defined rules conditions. For use in commercial organizations.",
+	"license": "MIT",
+	"version": "0.1.1",
+	"authors": [
+		{
+			"name": "fintech-fab",
+			"email": "dev@fintech-fab.ru"
+		},
+		{
+			"name": "truetamtam",
+			"email": "truetamtam@gmail.com"
+		}
+	],
+	"require": {
+		"php": ">=5.4.0",
+		"laravel": ">=4.2"
+	},
+	"autoload": {
+		"classmap": [
+			"src/migrations",
+			"src/controllers",
+			"tests"
+		],
+		"psr-0": {
+			"FintechFab\\ActionsCalc\\": "src/"
+		}
+	},
+	"minimum-stability": "stable"
 }

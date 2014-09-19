@@ -112,7 +112,7 @@ gulp.task('select2', function () {
 gulp.task('datatables', function () {
 
 	// js
-	gulp.src([vendorPath + 'datatables/datatables/media/js/jquery.dataTables.js'])
+	gulp.src([vendorPath + 'datatables/media/js/jquery.dataTables.js'])
 		.pipe(uglify())
 		.pipe(eol("\r\n"))
 		.pipe(rename({
