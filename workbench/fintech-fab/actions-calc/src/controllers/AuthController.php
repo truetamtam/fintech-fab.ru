@@ -2,7 +2,6 @@
 
 namespace FintechFab\ActionsCalc\Controllers;
 
-use Config;
 use Exception;
 use FintechFab\ActionsCalc\Components\AuthHandler;
 use FintechFab\ActionsCalc\Components\Validators;
@@ -11,7 +10,6 @@ use Hash;
 use Input;
 use Redirect;
 use Session;
-use Validator;
 use Request;
 use View;
 

@@ -7,7 +7,6 @@ use FintechFab\ActionsCalc\Models\Event;
 use Paginator;
 use Input;
 use View;
-use Request;
 
 /**
  * Class EventController
